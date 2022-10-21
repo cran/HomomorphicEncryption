@@ -1,0 +1,102 @@
+---
+title: "BFV-addition"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{BFV-addition}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+Load libraries that will be used.
+```{r setup}
+library(HomomorphicEncryption)
+library(polynom)
+```
+
+Set some parameters.
+```{r params}
+d  =      4
+n  =      2^d
+p  =     (n/2)-1
+q  = 424242
+pm = GenPolyMod(n)
+```
+
+Set a working seed for random numbers
+```{r}
+set.seed(123)
+```
+
+Create the secret key and the polynomials a and e, which will go into the public key
+```{r}
+# generate a secret key
+s = GenSecretKey(n)
+
+# generate a
+a = GenA(n, q)
+
+# generate the error
+e = GenError(n)
+```
+
+Generate the public key.
+```{r}
+# generate the public key
+pk0 = GenPubKey0(a, s, e, pm, q)
+pk1 = GenPubKey1(a)
+```
+
+Create polynomials for the encryption
+```{r}
+# polynomials for encryption
+e1 = GenError(n)
+e2 = GenError(n)
+u  = GenU(n)
+```
+
+Now create to messages to add.
+```{r}
+m1 = polynomial(c(1, 1, 1))
+m2 = polynomial(c(0, 1   ))
+```
+
+Encrypt the messages.
+```{r}
+m1_ct0 = EncryptPoly0(m1, pk0, u, e1, p, pm, q)
+m1_ct1 = EncryptPoly1(    pk1, u, e2,    pm, q)
+m2_ct0 = EncryptPoly0(m2, pk0, u, e1, p, pm, q)
+m2_ct1 = EncryptPoly1(    pk1, u, e2,    pm, q)
+```
+
+Sum the encrypted messages.
+```{r}
+sum_ct0 = m1_ct0 + m2_ct0
+sum_ct1 = m1_ct1 + m2_ct1
+
+sum_ct0 = sum_ct0 %% pm
+sum_ct0 = CoefMod(sum_ct0, q)
+
+sum_ct1 = sum_ct1 %% pm
+sum_ct1 = CoefMod(sum_ct1, q)
+```
+
+Decrypt the sum
+```{r}
+decrypt = (sum_ct1 * s) + sum_ct0
+decrypt = decrypt %% pm
+decrypt = CoefMod(decrypt, q)
+
+# rescale
+decrypt = decrypt * p/q
+
+# round then mod p
+decrypt = CoefMod(round(decrypt), p)
+print(decrypt)
+```

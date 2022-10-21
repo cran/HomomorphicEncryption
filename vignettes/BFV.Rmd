@@ -1,0 +1,91 @@
+---
+title: "BFV"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{BFV}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+Load libraries that will be used.
+```{r setup}
+library(polynom)
+library(HomomorphicEncryption)
+```
+
+Set some parameters.
+```{r params}
+d  =   4
+n  =   2^d
+p  =   (n/2)-1
+q  = 874
+pm = GenPolyMod(n)
+```
+
+Set a working seed for random numbers
+```{r}
+set.seed(123)
+```
+
+Create the secret key and the polynomials a and e, which will go into the public key
+```{r}
+# generate a secret key
+s = GenSecretKey(n)
+
+# generate a
+a = GenA(n, q)
+
+# generate the error
+e = GenError(n)
+```
+
+Generate the public key.
+```{r}
+# generate the public key
+pk0 = GenPubKey0(a, s, e, pm, q)
+pk1 = GenPubKey1(a)
+```
+
+Create a polynomial message
+```{r}
+# create a message
+m = polynomial( coef=c(1, 1, 1) )
+```
+
+Create polynomials for the encryption
+```{r}
+# polynomials for encryption
+e1 = GenError(n)
+e2 = GenError(n)
+u  = GenU(n)
+```
+
+Generate the ciphertext
+```{r}
+ct0 = EncryptPoly0(m, pk0, u, e1, p, pm, q)
+ct1 = EncryptPoly1(   pk1, u, e2,    pm, q)
+```
+
+Decrypt
+```{r}
+decrypt = (ct1 * s) + ct0
+decrypt = decrypt %% pm
+decrypt = CoefMod(decrypt, q)
+
+# rescale
+decrypt = decrypt * p/q
+```
+
+Round (remove the error) then mod p
+```{r}
+# round then mod p
+decrypt = CoefMod(round(decrypt), p)
+print(decrypt)
+```
