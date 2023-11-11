@@ -20,43 +20,65 @@ set.seed(123)
 
 ## -----------------------------------------------------------------------------
 # generate a secret key
-s = GenSecretKey(n)
+s = polynomial( sample( c(-1,0,1), n, replace=TRUE ) )
+print(s)
 
+## -----------------------------------------------------------------------------
 # generate a
-a = GenA(n, q)
+a = polynomial(sample.int(q, n, replace=TRUE))
+print(a)
 
+## -----------------------------------------------------------------------------
 # generate the error
-e = GenError(n)
+e = polynomial( coef=round(stats::rnorm(n, 0, n/3)) )
+print(e)
 
 ## -----------------------------------------------------------------------------
 # generate the public key
-pk0 = GenPubKey0(a, s, e, pm, q)
-pk1 = GenPubKey1(a)
+temp = -(a*s + e)
+temp = temp %% pm
+pk0 = CoefMod(temp, q)
+print(pk0)
+
+## -----------------------------------------------------------------------------
+pk1 = a
 
 ## -----------------------------------------------------------------------------
 # create a message
 m = polynomial( coef=c(6, 4, 2) )
+print(m)
 
 ## -----------------------------------------------------------------------------
 # polynomials for encryption
-e1 = GenError(n)
-e2 = GenError(n)
-u  = GenU(n)
+e1 = polynomial( coef=round(stats::rnorm(n, 0, n/3)) )
+e2 = polynomial( coef=round(stats::rnorm(n, 0, n/3)) )
 
 ## -----------------------------------------------------------------------------
-ct0 = EncryptPoly0(m, pk0, u, e1, p, pm, q)
-ct1 = EncryptPoly1(   pk1, u, e2,    pm, q)
+u  = polynomial( sample( c(-1,0,1), (n-1), replace=TRUE) )
+print(u)
 
 ## -----------------------------------------------------------------------------
-decrypt = (ct1 * s) + ct0
-decrypt = decrypt %% pm
-decrypt = CoefMod(decrypt, q)
+temp = pk0 * u + e1 + floor(q/p) * m
+temp = temp %% pm
+ct0 = CoefMod(temp, q)
+print(ct0)
+
+## -----------------------------------------------------------------------------
+temp = pk1 * u + e2
+temp = temp %% pm
+ct1 = CoefMod(temp, q)
+print(ct1)
+
+## -----------------------------------------------------------------------------
+temp = (ct1 * s) + ct0
+temp = temp %% pm
+temp = CoefMod(temp, q)
 
 # rescale
-decrypt = decrypt * p/q
+temp = temp * p/q
 
 ## -----------------------------------------------------------------------------
 # round then mod p
-decrypt = CoefMod(round(decrypt), p)
+decrypt = CoefMod(round(temp), p)
 print(decrypt)
 

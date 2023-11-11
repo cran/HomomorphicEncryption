@@ -12,7 +12,7 @@
 
 
 
-<title>BGV-addition</title>
+<title>BGV ModSwitch</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -336,7 +336,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 
 
-<h1 class="title toc-ignore">BGV-addition</h1>
+<h1 class="title toc-ignore">BGV ModSwitch</h1>
 
 
 
@@ -364,41 +364,66 @@ the public key</p>
 <p>Generate the public key.</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>pk0 <span class="ot">=</span> <span class="fu">GenPubKey0</span>(a, s, e<span class="sc">*</span>p, pm, q)</span>
 <span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>pk1 <span class="ot">=</span> <span class="fu">GenPubKey1</span>(a)</span></code></pre></div>
+<p>Generate the evaluation key (EvalKey, EK).</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>ek0 <span class="ot">=</span> <span class="fu">GenEvalKey0</span>(a, s, e)</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>ek1 <span class="ot">=</span> a</span></code></pre></div>
 <p>Create a polynomial message</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="co"># create a message</span></span>
-<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>m1 <span class="ot">=</span> <span class="fu">polynomial</span>( <span class="at">coef=</span><span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>) )</span>
-<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>m2 <span class="ot">=</span> <span class="fu">polynomial</span>( <span class="at">coef=</span><span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>   ) )</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="co"># create a message</span></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>m1 <span class="ot">=</span> <span class="fu">polynomial</span>( <span class="at">coef=</span><span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>) )</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>m2 <span class="ot">=</span> <span class="fu">polynomial</span>( <span class="at">coef=</span><span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>   ) )</span></code></pre></div>
 <p>Create polynomials for the encryption</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="co"># polynomials for encryption</span></span>
-<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>e1 <span class="ot">=</span> <span class="fu">GenError</span>(n)</span>
-<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>e2 <span class="ot">=</span> <span class="fu">GenError</span>(n)</span>
-<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>u  <span class="ot">=</span> <span class="fu">GenU</span>(n)</span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="co"># polynomials for encryption</span></span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>e1 <span class="ot">=</span> <span class="fu">GenError</span>(n)</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>e2 <span class="ot">=</span> <span class="fu">GenError</span>(n)</span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>u  <span class="ot">=</span> <span class="fu">GenU</span>(n)</span></code></pre></div>
 <p>Generate the ciphertext</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>m1_ct0 <span class="ot">=</span> pk0<span class="sc">*</span>u <span class="sc">+</span> p<span class="sc">*</span>e1 <span class="sc">+</span> m1</span>
-<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>m1_ct0 <span class="ot">=</span> m1_ct0 <span class="sc">%%</span> pm</span>
-<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>m1_ct0 <span class="ot">=</span> <span class="fu">CoefMod</span>(m1_ct0, q)</span>
-<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>  </span>
-<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>m1_ct1 <span class="ot">=</span> pk1<span class="sc">*</span>u <span class="sc">+</span> p<span class="sc">*</span>e2</span>
-<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a>m1_ct1 <span class="ot">=</span> m1_ct1 <span class="sc">%%</span> pm</span>
-<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a>m1_ct1 <span class="ot">=</span> <span class="fu">CoefMod</span>(m1_ct1, q)</span>
-<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a></span>
-<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a>m2_ct0 <span class="ot">=</span> pk0<span class="sc">*</span>u <span class="sc">+</span> p<span class="sc">*</span>e1 <span class="sc">+</span> m2</span>
-<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a>m2_ct0 <span class="ot">=</span> m2_ct0 <span class="sc">%%</span> pm</span>
-<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a>m2_ct0 <span class="ot">=</span> <span class="fu">CoefMod</span>(m2_ct0, q)</span>
-<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a>  </span>
-<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a>m2_ct1 <span class="ot">=</span> pk1<span class="sc">*</span>u <span class="sc">+</span> p<span class="sc">*</span>e2</span>
-<span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a>m2_ct1 <span class="ot">=</span> m2_ct1 <span class="sc">%%</span> pm</span>
-<span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a>m2_ct1 <span class="ot">=</span> <span class="fu">CoefMod</span>(m2_ct1, q)</span></code></pre></div>
-<p>EvalAdd</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>sum_ct0 <span class="ot">=</span> m1_ct0 <span class="sc">+</span> m2_ct0</span>
-<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>sum_ct1 <span class="ot">=</span> m1_ct1 <span class="sc">+</span> m2_ct1</span></code></pre></div>
-<p>Decrypt</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>decrypt <span class="ot">=</span> (sum_ct1 <span class="sc">*</span> s) <span class="sc">+</span> sum_ct0</span>
-<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>decrypt <span class="ot">=</span> decrypt <span class="sc">%%</span> pm</span>
-<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>decrypt <span class="ot">=</span> <span class="fu">CoefMod</span>(decrypt, q)</span>
-<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>decrypt <span class="ot">=</span> <span class="fu">CoefMod</span>(<span class="fu">round</span>(decrypt), p)</span>
-<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a><span class="fu">print</span>(decrypt)</span>
-<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a><span class="co">#&gt; 1 + 2*x + x^2</span></span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>m1_ct0 <span class="ot">=</span> pk0<span class="sc">*</span>u <span class="sc">+</span> p<span class="sc">*</span>e1 <span class="sc">+</span> m1</span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>m1_ct0 <span class="ot">=</span> m1_ct0 <span class="sc">%%</span> pm</span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>m1_ct0 <span class="ot">=</span> <span class="fu">CoefMod</span>(m1_ct0, q)</span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>  </span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>m1_ct1 <span class="ot">=</span> pk1<span class="sc">*</span>u <span class="sc">+</span> p<span class="sc">*</span>e2</span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a>m1_ct1 <span class="ot">=</span> m1_ct1 <span class="sc">%%</span> pm</span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a>m1_ct1 <span class="ot">=</span> <span class="fu">CoefMod</span>(m1_ct1, q)</span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a></span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a>m2_ct0 <span class="ot">=</span> pk0<span class="sc">*</span>u <span class="sc">+</span> p<span class="sc">*</span>e1 <span class="sc">+</span> m2</span>
+<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a>m2_ct0 <span class="ot">=</span> m2_ct0 <span class="sc">%%</span> pm</span>
+<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a>m2_ct0 <span class="ot">=</span> <span class="fu">CoefMod</span>(m2_ct0, q)</span>
+<span id="cb9-12"><a href="#cb9-12" tabindex="-1"></a>  </span>
+<span id="cb9-13"><a href="#cb9-13" tabindex="-1"></a>m2_ct1 <span class="ot">=</span> pk1<span class="sc">*</span>u <span class="sc">+</span> p<span class="sc">*</span>e2</span>
+<span id="cb9-14"><a href="#cb9-14" tabindex="-1"></a>m2_ct1 <span class="ot">=</span> m2_ct1 <span class="sc">%%</span> pm</span>
+<span id="cb9-15"><a href="#cb9-15" tabindex="-1"></a>m2_ct1 <span class="ot">=</span> <span class="fu">CoefMod</span>(m2_ct1, q)</span></code></pre></div>
+<p>EvalMult</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>multi_ct0 <span class="ot">=</span> m1_ct0 <span class="sc">*</span> m2_ct0</span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>multi_ct0 <span class="ot">=</span> multi_ct0 <span class="sc">%%</span> pm</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>multi_ct0 <span class="ot">=</span> <span class="fu">CoefMod</span>(multi_ct0, q)</span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>multi_ct0 <span class="ot">=</span> <span class="fu">round</span>(multi_ct0)</span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a></span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a>multi_ct1 <span class="ot">=</span> (m1_ct0 <span class="sc">*</span> m2_ct1 <span class="sc">+</span> m1_ct1 <span class="sc">*</span> m2_ct0)</span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a>multi_ct1 <span class="ot">=</span> multi_ct1 <span class="sc">%%</span> pm</span>
+<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a>multi_ct1 <span class="ot">=</span> <span class="fu">CoefMod</span>(multi_ct1, q)</span>
+<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a>multi_ct1 <span class="ot">=</span> <span class="fu">round</span>(multi_ct1)</span>
+<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a></span>
+<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a>multi_ct2 <span class="ot">=</span> (m1_ct1 <span class="sc">*</span> m2_ct1)</span>
+<span id="cb10-12"><a href="#cb10-12" tabindex="-1"></a>multi_ct2 <span class="ot">=</span> multi_ct2 <span class="sc">%%</span> pm</span>
+<span id="cb10-13"><a href="#cb10-13" tabindex="-1"></a>multi_ct2 <span class="ot">=</span> <span class="fu">CoefMod</span>(multi_ct2, q)</span>
+<span id="cb10-14"><a href="#cb10-14" tabindex="-1"></a>multi_ct2 <span class="ot">=</span> <span class="fu">round</span>(multi_ct2)</span></code></pre></div>
+<p>Relinearize:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a>ct0hat <span class="ot">=</span> <span class="fu">CoefMod</span>(multi_ct0 <span class="sc">+</span> ek0 <span class="sc">*</span> multi_ct2 <span class="sc">%%</span> pm, q)</span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>ct1hat <span class="ot">=</span> <span class="fu">CoefMod</span>(multi_ct1 <span class="sc">+</span> ek1 <span class="sc">*</span> multi_ct2 <span class="sc">%%</span> pm, q)</span></code></pre></div>
+<p>Attemtp to modswitch (note at this point relinearization doesn’t even
+work yet)</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a>q_prime <span class="ot">=</span> q <span class="sc">-</span> <span class="dv">1</span></span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>ct0hat_prime <span class="ot">=</span> <span class="fu">round</span>(ct0hat <span class="sc">*</span> q_prime<span class="sc">/</span>q)</span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a>ct1hat_prime <span class="ot">=</span> <span class="fu">round</span>(ct1hat <span class="sc">*</span> q_prime<span class="sc">/</span>q)</span></code></pre></div>
+<p>Decrypt the multiple</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a>decrypt <span class="ot">=</span> ct0hat_prime <span class="sc">+</span> ct1hat_prime <span class="sc">*</span> s</span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a>decrypt <span class="ot">=</span> decrypt <span class="sc">%%</span> pm</span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a>decrypt <span class="ot">=</span> <span class="fu">CoefMod</span>(decrypt, q_prime)</span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a>decrypt <span class="ot">=</span> decrypt <span class="sc">*</span> p<span class="sc">/</span>q_prime</span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a>decrypt <span class="ot">=</span> <span class="fu">CoefMod</span>(<span class="fu">round</span>(decrypt), p)</span>
+<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a><span class="fu">print</span>(decrypt)</span>
+<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a><span class="co">#&gt; 2 + 6*x + 2*x^2 + 4*x^3 + 5*x^4 + 3*x^5 + 4*x^6 + 6*x^7 + 4*x^8 + 5*x^9 + x^10  </span></span>
+<span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a><span class="co">#&gt; + x^11 + x^12 + 4*x^13 + 5*x^14 + 4*x^15</span></span></code></pre></div>
 
 
 

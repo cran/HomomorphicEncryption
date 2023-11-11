@@ -14,17 +14,10 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
-)
-```
-
 Load libraries that will be used.
-```{r setup}
-library(HomomorphicEncryption)
+```{r libraries}
 library(polynom)
+library(HomomorphicEncryption)
 ```
 
 Set some parameters.
@@ -68,12 +61,13 @@ e2 = GenError(n)
 u  = GenU(n)
 ```
 
-Now create to messages to add.
+Now create to messages to multiply.
 ```{r}
-m1 = polynomial(c(1, 1, 1))
-m2 = polynomial(c(0, 1   ))
+m1 = polynomial(c(3, 2, 2))
+m2 = polynomial(c(0, 2   ))
 ```
 
+Encrypt the two messages (i.e. genete the ct0 and ct1 part for each m1 and m2).
 ```{r}
 m1_ct0 = EncryptPoly0(m1, pk0, u, e1, p, pm, q)
 m1_ct1 = EncryptPoly1(    pk1, u, e2,    pm, q)
@@ -99,7 +93,7 @@ multi_ct2 = CoefMod(multi_ct2, q)
 multi_ct2 = round(multi_ct2)
 ```
 
-Decrypt the sum
+Decrypt the multiple
 ```{r}
 decrypt = (multi_ct2 * s^2) + (multi_ct1 * s) + multi_ct0
 decrypt = decrypt %% pm

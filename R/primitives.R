@@ -11,21 +11,9 @@ GenPolyMod <- function(n)
   polynomial( coef=c(1, rep(0, n-1), 1 ) )
 
 
-#' @name CoefMod
-#' @title Coefficient Modulo
-#' @param x polynomial from the polynom package
-#' @param k the modulo
-#' @return polynomial of the polynom class
-#' @import polynom
+#' @importFrom HEtools CoefMod
 #' @export
-#' @examples
-#' polynomial = polynomial(c(5, 3, 6))
-#' print(polynomial)
-#'
-#' CoefMod(polynomial, 5)
-CoefMod <- function(x, k)
-  polynom::polynomial(as.vector(x)%%k)
-
+HEtools::CoefMod
 
 #' @name GenSecretkey
 #' @title Generate Secret key
@@ -35,10 +23,8 @@ CoefMod <- function(x, k)
 #' @examples
 #' n = 16
 #' GenSecretKey(n)
-GenSecretKey <- function(n) {
-  coefs = sample.int(3, n, replace=TRUE)-2
-  polynomial( coef=coefs )
-}
+GenSecretKey <- function(n)
+  polynomial( sample.int(3, n, replace=TRUE)-2 )
 
 #' @name GenA
 #' @title Generate a
@@ -101,6 +87,17 @@ GenPubKey0 <- function(a, s, e, pm, q) {
 #' @export
 GenPubKey1 <- function(a)
   return(a)
+
+#' @name GenEvalKey0
+#' @title Generate the Evaluation Key
+#' @param a a
+#' @param s s
+#' @param e e
+#' @return polynomial
+#' @export
+GenEvalKey0 <- function(a, s, e)
+  -(a*s + e) + s^2
+
 
 #' @name GenPubKey
 #' @title Generate the Public Key

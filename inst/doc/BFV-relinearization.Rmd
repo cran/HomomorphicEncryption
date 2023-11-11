@@ -1,8 +1,8 @@
 ---
-title: "BFV-multiply"
+title: "BFV relinearization"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{BFV-multiply}
+  %\VignetteIndexEntry{BFV relinearization}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -14,6 +14,12 @@ knitr::opts_chunk$set(
 )
 ```
 
+This vignette follows the same structure as BFV multiply, but before decryption,
+instead of decrypting the terms C1, C2, and C3, 
+this vignette implements relinearization of those terms to: C1hat and C2hat.
+The term C3 includes the terms s^2 (or s*s), by removing this exponential term,
+the whole of C is linear again (i.e. only including s^1 terms).
+
 Load libraries that will be used.
 ```{r libraries}
 library(polynom)
@@ -22,10 +28,10 @@ library(HomomorphicEncryption)
 
 Set some parameters.
 ```{r params}
-d  =      4
+d  =      4     # n and d need to be renamed throughout the package
 n  =      2^d
-p  =     (n/2)-1
-q  = 424242
+p  =      11
+q  =  p * 15000
 pm = GenPolyMod(n)
 ```
 
@@ -43,7 +49,7 @@ s = GenSecretKey(n)
 a = GenA(n, q)
 
 # generate the error
-e = GenError(n)
+e = GenError(n/10) # need to figure out how this division can be removed, by scaling q/p
 ```
 
 Generate the public key.
@@ -51,6 +57,12 @@ Generate the public key.
 # generate the public key
 pk0 = GenPubKey0(a, s, e, pm, q)
 pk1 = GenPubKey1(a)
+```
+
+Generate the evaluation key (EvalKey, EK).
+```{r}
+ek0 = GenEvalKey0(a, s, e)
+ek1 = a
 ```
 
 Create polynomials for the encryption
@@ -80,7 +92,7 @@ Multiply the encrypted messages.
 multi_ct0 = m1_ct0 * m2_ct0 * (p/q)
 multi_ct0 = multi_ct0 %% pm
 multi_ct0 = CoefMod(multi_ct0, q)
-multi_ct0 = round(multi_ct0)
+multi_ct0 = round(multi_ct0) # the rounding should come before the mod (both of the mods)
 
 multi_ct1 = (m1_ct0 * m2_ct1 + m1_ct1 * m2_ct0) * (p/q)
 multi_ct1 = multi_ct1 %% pm
@@ -93,9 +105,15 @@ multi_ct2 = CoefMod(multi_ct2, q)
 multi_ct2 = round(multi_ct2)
 ```
 
+Relinearize:
+```{r}
+ct0hat = CoefMod(multi_ct0 + ek0 * multi_ct2 %% pm, q)
+ct1hat = CoefMod(multi_ct1 + ek1 * multi_ct2 %% pm, q)
+```
+
 Decrypt the multiple
 ```{r}
-decrypt = (multi_ct2 * s^2) + (multi_ct1 * s) + multi_ct0
+decrypt = ct0hat + ct1hat * s
 decrypt = decrypt %% pm
 decrypt = CoefMod(decrypt, q)
 

@@ -1,0 +1,131 @@
+---
+title: "BFV in base R"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{BFV in base R}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+Note that this vignette follows the exact same structure as BFV, and the variables have the same values.
+
+The functions that wrapped several steps in the BFV vignette, are simply unwrapped here for the reader to see what is going on under the hood.
+
+Load libraries that will be used.
+```{r setup}
+library(polynom)
+library(HomomorphicEncryption)
+```
+
+Set some parameters.
+```{r params}
+d  =   4
+n  =   2^d
+p  =   (n/2)-1
+q  = 874
+pm = GenPolyMod(n)
+```
+
+Set a working seed for random numbers
+```{r}
+set.seed(123)
+```
+
+Create the secret key:
+```{r}
+# generate a secret key
+s = polynomial( sample( c(-1,0,1), n, replace=TRUE ) )
+print(s)
+```
+We randomly draw from the set [-1, 0, 1] with replacement n values. These integers are used as the parameters of the polynomial used as the secret key.
+
+Create and the polynomial a, which will go into the public key:
+```{r}
+# generate a
+a = polynomial(sample.int(q, n, replace=TRUE))
+print(a)
+```
+For the polynomial a, we sample from positive integers up to q, n values, with replacement.
+
+Create and the polynomial e, which will go into the public key:
+```{r}
+# generate the error
+e = polynomial( coef=round(stats::rnorm(n, 0, n/3)) )
+print(e)
+```
+Some error noise is generated, with values bounded by 1/3 of n.
+
+Generate the public key part 0.
+```{r}
+# generate the public key
+temp = -(a*s + e)
+temp = temp %% pm
+pk0 = CoefMod(temp, q)
+print(pk0)
+```
+
+Generate public key part 1.
+```{r}
+pk1 = a
+```
+Part 1 of the public key is simply equal to a.
+
+Create a polynomial message
+```{r}
+# create a message
+m = polynomial( coef=c(6, 4, 2) )
+print(m)
+```
+
+Create error polynomials for the encryption
+```{r}
+# polynomials for encryption
+e1 = polynomial( coef=round(stats::rnorm(n, 0, n/3)) )
+e2 = polynomial( coef=round(stats::rnorm(n, 0, n/3)) )
+```
+
+Create the term u for encryption.
+```{r}
+u  = polynomial( sample( c(-1,0,1), (n-1), replace=TRUE) )
+print(u)
+```
+
+Generate the ciphertext part 0.
+```{r}
+temp = pk0 * u + e1 + floor(q/p) * m
+temp = temp %% pm
+ct0 = CoefMod(temp, q)
+print(ct0)
+```
+
+Generate the ciphertext part 0.
+```{r}
+temp = pk1 * u + e2
+temp = temp %% pm
+ct1 = CoefMod(temp, q)
+print(ct1)
+```
+
+Decrypt
+```{r}
+temp = (ct1 * s) + ct0
+temp = temp %% pm
+temp = CoefMod(temp, q)
+
+# rescale
+temp = temp * p/q
+```
+
+Round (remove the error) then mod p
+```{r}
+# round then mod p
+decrypt = CoefMod(round(temp), p)
+print(decrypt)
+```

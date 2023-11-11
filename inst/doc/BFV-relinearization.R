@@ -4,16 +4,15 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 
-## ----setup--------------------------------------------------------------------
+## ----libraries----------------------------------------------------------------
 library(polynom)
 library(HomomorphicEncryption)
 
 ## ----params-------------------------------------------------------------------
-d  =   4
-n  =   2^d
-p  =   (n/2)-1
-t  =   p
-q  = 868
+d  =      4     # n and d need to be renamed throughout the package
+n  =      2^d
+p  =      11
+q  =  p * 15000
 pm = GenPolyMod(n)
 
 ## -----------------------------------------------------------------------------
@@ -27,16 +26,16 @@ s = GenSecretKey(n)
 a = GenA(n, q)
 
 # generate the error
-e = GenError(n)
+e = GenError(n/10) # need to figure out how this division can be removed, by scaling q/p
 
 ## -----------------------------------------------------------------------------
-pk0 = GenPubKey0(a, s, e*p, pm, q)
+# generate the public key
+pk0 = GenPubKey0(a, s, e, pm, q)
 pk1 = GenPubKey1(a)
 
 ## -----------------------------------------------------------------------------
-# create a message
-m1 = polynomial( coef=c(1, 1, 1) )
-m2 = polynomial( coef=c(0, 1   ) )
+ek0 = GenEvalKey0(a, s, e)
+ek1 = a
 
 ## -----------------------------------------------------------------------------
 # polynomials for encryption
@@ -45,42 +44,44 @@ e2 = GenError(n)
 u  = GenU(n)
 
 ## -----------------------------------------------------------------------------
-m1_ct0 = pk0*u + p*e1 + m1
-m1_ct0 = m1_ct0 %% pm
-m1_ct0 = CoefMod(m1_ct0, q)
-  
-m1_ct1 = pk1*u + p*e2
-m1_ct1 = m1_ct1 %% pm
-m1_ct1 = CoefMod(m1_ct1, q)
-
-m2_ct0 = pk0*u + p*e1 + m2
-m2_ct0 = m2_ct0 %% pm
-m2_ct0 = CoefMod(m2_ct0, q)
-  
-m2_ct1 = pk1*u + p*e2
-m2_ct1 = m2_ct1 %% pm
-m2_ct1 = CoefMod(m2_ct1, q)
+m1 = polynomial(c(3, 2, 2))
+m2 = polynomial(c(0, 2   ))
 
 ## -----------------------------------------------------------------------------
-multi_ct0 = m1_ct0 * m2_ct0
+m1_ct0 = EncryptPoly0(m1, pk0, u, e1, p, pm, q)
+m1_ct1 = EncryptPoly1(    pk1, u, e2,    pm, q)
+m2_ct0 = EncryptPoly0(m2, pk0, u, e1, p, pm, q)
+m2_ct1 = EncryptPoly1(    pk1, u, e2,    pm, q)
+
+## -----------------------------------------------------------------------------
+multi_ct0 = m1_ct0 * m2_ct0 * (p/q)
 multi_ct0 = multi_ct0 %% pm
 multi_ct0 = CoefMod(multi_ct0, q)
-multi_ct0 = round(multi_ct0)
+multi_ct0 = round(multi_ct0) # the rounding should come before the mod (both of the mods)
 
-multi_ct1 = (m1_ct0 * m2_ct1 + m1_ct1 * m2_ct0)
+multi_ct1 = (m1_ct0 * m2_ct1 + m1_ct1 * m2_ct0) * (p/q)
 multi_ct1 = multi_ct1 %% pm
 multi_ct1 = CoefMod(multi_ct1, q)
 multi_ct1 = round(multi_ct1)
 
-multi_ct2 = (m1_ct1 * m2_ct1)
+multi_ct2 = (m1_ct1 * m2_ct1) * (p/q)
 multi_ct2 = multi_ct2 %% pm
 multi_ct2 = CoefMod(multi_ct2, q)
 multi_ct2 = round(multi_ct2)
 
 ## -----------------------------------------------------------------------------
-decrypt = (multi_ct2 * s^2) + (multi_ct1 * s) + multi_ct0
+ct0hat = CoefMod(multi_ct0 + ek0 * multi_ct2 %% pm, q)
+ct1hat = CoefMod(multi_ct1 + ek1 * multi_ct2 %% pm, q)
+
+## -----------------------------------------------------------------------------
+decrypt = ct0hat + ct1hat * s
 decrypt = decrypt %% pm
 decrypt = CoefMod(decrypt, q)
+
+# rescale
+decrypt = decrypt * p/q
+
+# round then mod p
 decrypt = CoefMod(round(decrypt), p)
 print(decrypt)
 

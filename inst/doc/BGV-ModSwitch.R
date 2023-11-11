@@ -34,6 +34,10 @@ pk0 = GenPubKey0(a, s, e*p, pm, q)
 pk1 = GenPubKey1(a)
 
 ## -----------------------------------------------------------------------------
+ek0 = GenEvalKey0(a, s, e)
+ek1 = a
+
+## -----------------------------------------------------------------------------
 # create a message
 m1 = polynomial( coef=c(1, 1, 1) )
 m2 = polynomial( coef=c(0, 1   ) )
@@ -78,9 +82,19 @@ multi_ct2 = CoefMod(multi_ct2, q)
 multi_ct2 = round(multi_ct2)
 
 ## -----------------------------------------------------------------------------
-decrypt = (multi_ct2 * s^2) + (multi_ct1 * s) + multi_ct0
+ct0hat = CoefMod(multi_ct0 + ek0 * multi_ct2 %% pm, q)
+ct1hat = CoefMod(multi_ct1 + ek1 * multi_ct2 %% pm, q)
+
+## -----------------------------------------------------------------------------
+q_prime = q - 1
+ct0hat_prime = round(ct0hat * q_prime/q)
+ct1hat_prime = round(ct1hat * q_prime/q)
+
+## -----------------------------------------------------------------------------
+decrypt = ct0hat_prime + ct1hat_prime * s
 decrypt = decrypt %% pm
-decrypt = CoefMod(decrypt, q)
+decrypt = CoefMod(decrypt, q_prime)
+decrypt = decrypt * p/q_prime
 decrypt = CoefMod(round(decrypt), p)
 print(decrypt)
 
