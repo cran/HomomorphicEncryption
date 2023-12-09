@@ -4,7 +4,12 @@
 \alias{BFV_KeyGen}
 \title{Brakerski / Fan-Vercauteren}
 \usage{
-BFV_KeyGen()
+BFV_KeyGen(d = 4, q = 424242)
+}
+\arguments{
+\item{d}{the d input}
+
+\item{q}{the q input}
 }
 \value{
 polynomial

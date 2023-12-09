@@ -4,7 +4,7 @@
 \alias{GenPubKey}
 \title{Generate the Public Key}
 \usage{
-GenPubKey(a, n, e, pm)
+GenPubKey(a, n, e, pm, q)
 }
 \arguments{
 \item{a}{a}
@@ -14,6 +14,8 @@ GenPubKey(a, n, e, pm)
 \item{e}{e}
 
 \item{pm}{pm}
+
+\item{q}{q}
 }
 \value{
 list with the two polynomials that form the public key

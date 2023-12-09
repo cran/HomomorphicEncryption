@@ -1,6 +1,6 @@
 Package: HomomorphicEncryption
 Title: BFV, BGV, CKKS Schema for Fully Homomorphic Encryption
-Version: 0.2.0
+Version: 0.3.0
 Authors@R: 
     person("Bastiaan", "Quast", , "bquast@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-2951-3577"))
@@ -13,8 +13,8 @@ Suggests: covr, knitr, rmarkdown, testthat (>= 3.0.0)
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 NeedsCompilation: no
-Packaged: 2023-11-11 12:27:20 UTC; bquast
+Packaged: 2023-12-09 13:29:55 UTC; bquast
 Author: Bastiaan Quast [aut, cre] (<https://orcid.org/0000-0002-2951-3577>)
 Maintainer: Bastiaan Quast <bquast@gmail.com>
 Repository: CRAN
-Date/Publication: 2023-11-11 13:13:18 UTC
+Date/Publication: 2023-12-09 13:50:05 UTC
