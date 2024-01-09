@@ -12,7 +12,7 @@
 
 
 
-<title>BFV</title>
+<title>BGV 2</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -336,82 +336,87 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 
 
-<h1 class="title toc-ignore">BFV</h1>
+<h1 class="title toc-ignore">BGV 2</h1>
 
 
 
-<p>Load libraries that will be used.</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(polynom)</span>
 <span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">library</span>(HomomorphicEncryption)</span></code></pre></div>
 <p>Set some parameters.</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>d  <span class="ot">=</span>   <span class="dv">4</span></span>
 <span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>n  <span class="ot">=</span>   <span class="dv">2</span><span class="sc">^</span>d</span>
 <span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>p  <span class="ot">=</span>   (n<span class="sc">/</span><span class="dv">2</span>)<span class="sc">-</span><span class="dv">1</span></span>
-<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>q  <span class="ot">=</span> <span class="dv">874</span></span></code></pre></div>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>t  <span class="ot">=</span>   p</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>q  <span class="ot">=</span> <span class="dv">868</span></span></code></pre></div>
 <p>Set a working seed for random numbers</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span></code></pre></div>
 <p>Here we create the polynomial modulo.</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>pm <span class="ot">=</span> <span class="fu">polynomial</span>( <span class="at">coef=</span><span class="fu">c</span>(<span class="dv">1</span>, <span class="fu">rep</span>(<span class="dv">0</span>, n<span class="dv">-1</span>), <span class="dv">1</span> ) )</span>
 <span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="fu">print</span>(pm)</span>
 <span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="co">#&gt; 1 + x^16</span></span></code></pre></div>
-<p>Create the secret key and the polynomials a and e, which will go into
-the public key</p>
+<p>Create the secret key.</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co"># generate a secret key</span></span>
-<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>s <span class="ot">=</span> <span class="fu">GenSecretKey</span>(n)</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>s <span class="ot">=</span> <span class="fu">polynomial</span>( <span class="fu">sample.int</span>(<span class="dv">3</span>, n, <span class="at">replace=</span><span class="cn">TRUE</span>)<span class="sc">-</span><span class="dv">2</span> )</span>
 <span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="fu">print</span>(s)</span>
 <span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a><span class="co">#&gt; 1 + x + x^2 + x^4 + x^8 - x^9 - x^12 + x^14 - x^15</span></span></code></pre></div>
+<p>Create a (part of the public key)</p>
 <div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="co"># generate a</span></span>
-<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>a <span class="ot">=</span> <span class="fu">GenA</span>(n, q)</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>a <span class="ot">=</span> <span class="fu">polynomial</span>(<span class="fu">sample.int</span>(q, n, <span class="at">replace=</span><span class="cn">TRUE</span>))</span>
 <span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="fu">print</span>(a)</span>
 <span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a><span class="co">#&gt; 91 + 348*x + 649*x^2 + 355*x^3 + 840*x^4 + 26*x^5 + 519*x^6 + 426*x^7 + 649*x^8  </span></span>
-<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="co">#&gt; + 766*x^9 + 211*x^10 + 590*x^11 + 593*x^12 + 555*x^13 + 871*x^14 + 373*x^15</span></span></code></pre></div>
-<p>Generate the error for the public key.</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>e <span class="ot">=</span> <span class="fu">GenError</span>(n)</span>
-<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="fu">print</span>(e)</span>
-<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="co">#&gt; -4 - x - 2*x^2 - 6*x^3 + 6*x^5 - x^6 - 6*x^7 - 4*x^8 + 4*x^9 - 2*x^10 - 7*x^11  </span></span>
-<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="co">#&gt; - 3*x^12 - x^13 + 5*x^14 - x^15</span></span></code></pre></div>
-<p>Generate the public key.</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>pk0 <span class="ot">=</span> <span class="fu">GenPubKey0</span>(a, s, e, pm, q)</span>
-<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="fu">print</span>(pk0)</span>
-<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="co">#&gt; 560 + 287*x + 70*x^2 + 788*x^3 + 534*x^4 + 150*x^5 + 43*x^6 + 331*x^7 + 328*x^8  </span></span>
-<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="co">#&gt; + 318*x^9 + 184*x^10 + 519*x^11 + 504*x^12 + 783*x^13 + 79*x^14 + 425*x^15</span></span></code></pre></div>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>pk1 <span class="ot">=</span> <span class="fu">GenPubKey1</span>(a)</span></code></pre></div>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="co">#&gt; + 766*x^9 + 211*x^10 + 590*x^11 + 593*x^12 + 555*x^13 + 373*x^14 + 844*x^15</span></span></code></pre></div>
+<p>Create the error term <code>e</code> to be used to generate the
+public key.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="co"># generate the error</span></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>e <span class="ot">=</span> <span class="fu">polynomial</span>( <span class="at">coef=</span><span class="fu">round</span>(stats<span class="sc">::</span><span class="fu">rnorm</span>(n, <span class="dv">0</span>, n<span class="sc">/</span><span class="dv">3</span>)) )</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="fu">print</span>(e)</span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="co">#&gt; -6 - x - 5*x^2 - 4*x^3 - 3*x^4 - 9*x^5 + 4*x^6 + x^7 - 6*x^8 + 7*x^9 + 2*x^10 -  </span></span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a><span class="co">#&gt; 2*x^11 + 5*x^12 + 5*x^13 + 4*x^14 + 4*x^15</span></span></code></pre></div>
+<p>Generate Part 1 of the Public Key.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>pk1 <span class="ot">=</span> <span class="sc">-</span>(a<span class="sc">*</span>s <span class="sc">+</span> p<span class="sc">*</span>e)</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>pk1 <span class="ot">=</span> pk1 <span class="sc">%%</span> pm</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>pk1 <span class="ot">=</span> <span class="fu">CoefMod</span>(pk1, q)</span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="fu">print</span>(pk1)</span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a><span class="co">#&gt; 577 + 764*x + 467*x^2 + 395*x^3 + 537*x^4 + 201*x^5 + 372*x^6 + 401*x^7 +  </span></span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="co">#&gt; 733*x^8 + 255*x^9 + 642*x^10 + 37*x^11 + 818*x^12 + 830*x^13 + 65*x^14 +  </span></span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a><span class="co">#&gt; 405*x^15</span></span></code></pre></div>
+<p>Generate Part 2 of the Public Key (which is actually just equal to
+a).</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>pk2 <span class="ot">=</span> a</span></code></pre></div>
 <p>Create a polynomial message</p>
 <div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="co"># create a message</span></span>
-<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>m <span class="ot">=</span> <span class="fu">polynomial</span>( <span class="at">coef=</span><span class="fu">c</span>(<span class="dv">6</span>, <span class="dv">4</span>, <span class="dv">2</span>) )</span></code></pre></div>
-<p>Create polynomials for the encryption</p>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>m <span class="ot">=</span> <span class="fu">polynomial</span>( <span class="at">coef=</span><span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>) )</span></code></pre></div>
+<p>Create polynomials for the encryption of the message. Since e1 and e2
+are constructed the same way as e, we don’t print them, we just print
+u.</p>
 <div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="co"># polynomials for encryption</span></span>
-<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>e1 <span class="ot">=</span> <span class="fu">GenError</span>(n)</span>
-<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a>e2 <span class="ot">=</span> <span class="fu">GenError</span>(n)</span>
-<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a>u  <span class="ot">=</span> <span class="fu">GenU</span>(n)</span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>e1 <span class="ot">=</span> <span class="fu">polynomial</span>( <span class="at">coef=</span><span class="fu">round</span>(stats<span class="sc">::</span><span class="fu">rnorm</span>(n, <span class="dv">0</span>, n<span class="sc">/</span><span class="dv">3</span>)) )</span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a>e2 <span class="ot">=</span> <span class="fu">polynomial</span>( <span class="at">coef=</span><span class="fu">round</span>(stats<span class="sc">::</span><span class="fu">rnorm</span>(n, <span class="dv">0</span>, n<span class="sc">/</span><span class="dv">3</span>)) )</span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a>u  <span class="ot">=</span> <span class="fu">polynomial</span>( <span class="at">coef=</span><span class="fu">sample.int</span>(<span class="dv">3</span>, (n<span class="dv">-1</span>), <span class="at">replace=</span><span class="cn">TRUE</span>)<span class="sc">-</span><span class="dv">2</span> )</span>
 <span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a><span class="fu">print</span>(u)</span>
 <span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a><span class="co">#&gt; x^3 - x^5 + x^9 + x^11 + x^13 - x^14</span></span></code></pre></div>
-<p>Generate the ciphertext.</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a>ct0 <span class="ot">=</span> <span class="fu">EncryptPoly0</span>(m, pk0, u, e1, p, pm, q)</span>
-<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a><span class="fu">print</span>(ct0)</span>
-<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a><span class="co">#&gt; 157 + 787*x + 337*x^2 + 236*x^3 + 454*x^4 + 575*x^5 + 87*x^6 + 14*x^7 + 448*x^8  </span></span>
-<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a><span class="co">#&gt; + 640*x^10 + 747*x^11 + 711*x^12 + 564*x^13 + 866*x^14 + 678*x^15</span></span></code></pre></div>
-<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a>ct1 <span class="ot">=</span> <span class="fu">EncryptPoly1</span>(   pk1, u, e2,    pm, q)</span>
-<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a><span class="fu">print</span>(ct1)</span>
-<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a><span class="co">#&gt; 760 + 698*x + 679*x^2 + 477*x^3 + 329*x^4 + 414*x^5 + 487*x^6 + 165*x^7 +  </span></span>
-<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a><span class="co">#&gt; 111*x^8 + 642*x^9 + 409*x^10 + 565*x^11 + 660*x^12 + 644*x^13 + 469*x^14 +  </span></span>
-<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a><span class="co">#&gt; 297*x^15</span></span></code></pre></div>
+<p>Generate Part 1 of the ciphertext version of the message.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a>ct1 <span class="ot">=</span> pk1<span class="sc">*</span>u <span class="sc">+</span> p<span class="sc">*</span>e1 <span class="sc">+</span> m</span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>ct1 <span class="ot">=</span> ct1 <span class="sc">%%</span> pm</span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a>ct1 <span class="ot">=</span> <span class="fu">CoefMod</span>(ct1, q)</span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a><span class="fu">print</span>(ct1)</span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a><span class="co">#&gt; 436 + 377*x + 95*x^2 + 818*x^3 + 820*x^4 + 695*x^5 + 61*x^6 + 620*x^7 + 86*x^8  </span></span>
+<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a><span class="co">#&gt; + 392*x^9 + 533*x^10 + 420*x^11 + 701*x^12 + 159*x^13 + 572*x^14 + 788*x^15</span></span></code></pre></div>
+<p>Generate Part 2 of the ciphertext version of the message.</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a>ct2 <span class="ot">=</span> pk2<span class="sc">*</span>u <span class="sc">+</span> p<span class="sc">*</span>e2</span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a>ct2 <span class="ot">=</span> ct2 <span class="sc">%%</span> pm</span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a>ct2 <span class="ot">=</span> <span class="fu">CoefMod</span>(ct2, q)</span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a><span class="fu">print</span>(ct2)</span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a><span class="co">#&gt; 745 + 352*x + 194*x^2 + 35*x^3 + 741*x^4 + 420*x^5 + 488*x^6 + 655*x^7 +  </span></span>
+<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a><span class="co">#&gt; 511*x^8 + 241*x^9 + 796*x^10 + 149*x^11 + 530*x^12 + 264*x^13 + 476*x^14 +  </span></span>
+<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a><span class="co">#&gt; 306*x^15</span></span></code></pre></div>
 <p>Decrypt</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a>decrypt <span class="ot">=</span> (ct1 <span class="sc">*</span> s) <span class="sc">+</span> ct0</span>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a>decrypt <span class="ot">=</span> (ct2 <span class="sc">*</span> s) <span class="sc">+</span> ct1</span>
 <span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a>decrypt <span class="ot">=</span> decrypt <span class="sc">%%</span> pm</span>
 <span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a>decrypt <span class="ot">=</span> <span class="fu">CoefMod</span>(decrypt, q)</span>
-<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a></span>
-<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a><span class="co"># rescale</span></span>
-<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a>decrypt <span class="ot">=</span> decrypt <span class="sc">*</span> p<span class="sc">/</span>q</span></code></pre></div>
-<p>Round (remove the error) then mod p</p>
-<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="co"># round then mod p</span></span>
-<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a>decrypt <span class="ot">=</span> <span class="fu">CoefMod</span>(<span class="fu">round</span>(decrypt), p)</span>
-<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a><span class="fu">print</span>(decrypt)</span>
-<span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a><span class="co">#&gt; 6 + 4*x + 2*x^2</span></span></code></pre></div>
-<p>Which is indeed the message that we first encrypted.</p>
-<p>Next, look at the vignette BFV-2 which does the exact same process,
-but unpacks all the functions used here into basic mathematical
-operations.</p>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a>decrypt <span class="ot">=</span> <span class="fu">CoefMod</span>(<span class="fu">round</span>(decrypt), p)</span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a><span class="fu">print</span>(decrypt)</span>
+<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a><span class="co">#&gt; 2 + 3*x + 4*x^2</span></span></code></pre></div>
 
 
 

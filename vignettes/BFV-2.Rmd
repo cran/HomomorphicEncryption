@@ -1,0 +1,131 @@
+---
+title: "BFV 2"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{BFV 2}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+Load libraries that will be used.
+```{r setup}
+library(polynom)
+library(HomomorphicEncryption)
+```
+
+Set some parameters.
+```{r params}
+d  =   4
+n  =   2^d
+p  =   (n/2)-1
+q  = 874
+```
+
+Set a working seed for random numbers
+```{r}
+set.seed(123)
+```
+
+Here we create the polynomial modulo.
+
+```{r GenPolyMod}
+pm = polynomial( coef=c(1, rep(0, n-1), 1 ) )
+print(pm)
+```
+
+Create the secret key.
+
+```{r secretkey}
+# generate a secret key
+s = polynomial( sample.int(3, n, replace=TRUE)-2 )
+print(s)
+```
+
+Create a (part of the public key)
+
+```{r a}
+# generate a
+a = polynomial(sample.int(q, n, replace=TRUE))
+print(a)
+```
+
+Create the error term `e` to be used to generate the public key.
+
+```{r e}
+# generate the error
+e = polynomial( coef=round(stats::rnorm(n, 0, n/3)) )
+print(e)
+```
+
+Generate Part 1 of the Public Key.
+
+```{r pubkey1}
+pk1 = -(a*s + e)
+pk1 = pk1 %% pm
+pk1 = CoefMod(pk1, q)
+print(pk1)
+```
+
+Generate Part 2 of the Public Key (which is actually just equal to a).
+
+```{r pubkey2}
+pk2 = a
+```
+
+Create a polynomial message
+```{r}
+# create a message
+m = polynomial( coef=c(6, 4, 2) )
+```
+
+Create polynomials for the encryption of the message. Since e1 and e2 are constructed the same way as e, we don't print them, we just print u.
+
+```{r e1e2u}
+# polynomials for encryption
+e1 = polynomial( coef=round(stats::rnorm(n, 0, n/3)) )
+e2 = polynomial( coef=round(stats::rnorm(n, 0, n/3)) )
+u  = polynomial( coef=sample.int(3, (n-1), replace=TRUE)-2 )
+print(u)
+```
+
+Generate Part 1 of the ciphertext version of the message.
+
+```{r ciphertext1}
+ct1 = pk1 * u + e1 + floor(q/p) * m
+ct1 = ct1 %% pm
+ct1 = CoefMod(ct1, q)
+print(ct1)
+```
+
+Generate Part 2 of the ciphertext version of the message.
+
+```{r ciphertext2}
+ct2 = pk2 * u + e2
+ct2 = ct2 %% pm
+ct2 = CoefMod(ct2, q)
+print(ct2)
+```
+
+Decrypt
+```{r}
+decrypt = (ct2 * s) + ct1
+decrypt = decrypt %% pm
+decrypt = CoefMod(decrypt, q)
+
+# rescale
+decrypt = decrypt * p/q
+```
+
+Round (remove the error) then mod p
+```{r}
+# round then mod p
+decrypt = CoefMod(round(decrypt), p)
+print(decrypt)
+```

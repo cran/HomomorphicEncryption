@@ -12,7 +12,7 @@
 
 
 
-<title>BFV-addition</title>
+<title>CKKS encode</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -336,69 +336,40 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 
 
-<h1 class="title toc-ignore">BFV-addition</h1>
+<h1 class="title toc-ignore">CKKS encode</h1>
 
 
 
 <p>Load libraries that will be used.</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(HomomorphicEncryption)</span>
-<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">library</span>(polynom)</span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(polynom)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">library</span>(HomomorphicEncryption)</span></code></pre></div>
+<p>Set a working seed for random numbers (so that random numbers can be
+replicated exactly).</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span></code></pre></div>
 <p>Set some parameters.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>d  <span class="ot">=</span>      <span class="dv">4</span></span>
-<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>n  <span class="ot">=</span>      <span class="dv">2</span><span class="sc">^</span>d</span>
-<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>p  <span class="ot">=</span>     (n<span class="sc">/</span><span class="dv">2</span>)<span class="sc">-</span><span class="dv">1</span></span>
-<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>q  <span class="ot">=</span> <span class="dv">424242</span></span>
-<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>pm <span class="ot">=</span> <span class="fu">GenPolyMod</span>(n)</span></code></pre></div>
-<p>Set a working seed for random numbers</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span></code></pre></div>
-<p>Create the secret key and the polynomials a and e, which will go into
-the public key</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># generate a secret key</span></span>
-<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>s <span class="ot">=</span> <span class="fu">GenSecretKey</span>(n)</span>
-<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a></span>
-<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="co"># generate a</span></span>
-<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>a <span class="ot">=</span> <span class="fu">GenA</span>(n, q)</span>
-<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a></span>
-<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="co"># generate the error</span></span>
-<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>e <span class="ot">=</span> <span class="fu">GenError</span>(n)</span></code></pre></div>
-<p>Generate the public key.</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co"># generate the public key</span></span>
-<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>pk0 <span class="ot">=</span> <span class="fu">GenPubKey0</span>(a, s, e, pm, q)</span>
-<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>pk1 <span class="ot">=</span> <span class="fu">GenPubKey1</span>(a)</span></code></pre></div>
-<p>Create polynomials for the encryption</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="co"># polynomials for encryption</span></span>
-<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>e1 <span class="ot">=</span> <span class="fu">GenError</span>(n)</span>
-<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>e2 <span class="ot">=</span> <span class="fu">GenError</span>(n)</span>
-<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>u  <span class="ot">=</span> <span class="fu">GenU</span>(n)</span></code></pre></div>
-<p>Now create to messages to add.</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>m1 <span class="ot">=</span> <span class="fu">polynomial</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>))</span>
-<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>m2 <span class="ot">=</span> <span class="fu">polynomial</span>(<span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>   ))</span></code></pre></div>
-<p>Encrypt the messages.</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>m1_ct0 <span class="ot">=</span> <span class="fu">EncryptPoly0</span>(m1, pk0, u, e1, p, pm, q)</span>
-<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>m1_ct1 <span class="ot">=</span> <span class="fu">EncryptPoly1</span>(    pk1, u, e2,    pm, q)</span>
-<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>m2_ct0 <span class="ot">=</span> <span class="fu">EncryptPoly0</span>(m2, pk0, u, e1, p, pm, q)</span>
-<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>m2_ct1 <span class="ot">=</span> <span class="fu">EncryptPoly1</span>(    pk1, u, e2,    pm, q)</span></code></pre></div>
-<p>Sum the encrypted messages.</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>sum_ct0 <span class="ot">=</span> m1_ct0 <span class="sc">+</span> m2_ct0</span>
-<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>sum_ct1 <span class="ot">=</span> m1_ct1 <span class="sc">+</span> m2_ct1</span>
-<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a></span>
-<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>sum_ct0 <span class="ot">=</span> sum_ct0 <span class="sc">%%</span> pm</span>
-<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>sum_ct0 <span class="ot">=</span> <span class="fu">CoefMod</span>(sum_ct0, q)</span>
-<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a></span>
-<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a>sum_ct1 <span class="ot">=</span> sum_ct1 <span class="sc">%%</span> pm</span>
-<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a>sum_ct1 <span class="ot">=</span> <span class="fu">CoefMod</span>(sum_ct1, q)</span></code></pre></div>
-<p>Decrypt the sum</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>decrypt <span class="ot">=</span> (sum_ct1 <span class="sc">*</span> s) <span class="sc">+</span> sum_ct0</span>
-<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>decrypt <span class="ot">=</span> decrypt <span class="sc">%%</span> pm</span>
-<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>decrypt <span class="ot">=</span> <span class="fu">CoefMod</span>(decrypt, q)</span>
-<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a></span>
-<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a><span class="co"># rescale</span></span>
-<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a>decrypt <span class="ot">=</span> decrypt <span class="sc">*</span> p<span class="sc">/</span>q</span>
-<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a></span>
-<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a><span class="co"># round then mod p</span></span>
-<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a>decrypt <span class="ot">=</span> <span class="fu">CoefMod</span>(<span class="fu">round</span>(decrypt), p)</span>
-<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a><span class="fu">print</span>(decrypt)</span>
-<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a><span class="co">#&gt; 1 + 2*x + x^2</span></span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>M     <span class="ot">&lt;-</span> <span class="dv">8</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>N     <span class="ot">&lt;-</span> M <span class="sc">/</span> <span class="dv">2</span></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>scale <span class="ot">&lt;-</span> <span class="dv">4</span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>xi    <span class="ot">&lt;-</span> <span class="fu">complex</span>(<span class="at">real =</span> <span class="fu">cos</span>(<span class="dv">2</span> <span class="sc">*</span> pi <span class="sc">/</span> M), <span class="at">imaginary =</span> <span class="fu">sin</span>(<span class="dv">2</span> <span class="sc">*</span> pi <span class="sc">/</span> M))</span></code></pre></div>
+<p>Create the (complex) numbers we will encode.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>z <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">complex</span>(<span class="at">real=</span><span class="dv">3</span>, <span class="at">imaginary=</span><span class="dv">4</span>), <span class="fu">complex</span>(<span class="at">real=</span><span class="dv">2</span>, <span class="at">imaginary=</span><span class="sc">-</span><span class="dv">1</span>))</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="fu">print</span>(z)</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="co">#&gt; [1] 3+4i 2-1i</span></span></code></pre></div>
+<p>Now we encode the vector of complex numbers to a polynomial.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="fu">encode</span>(xi, M, scale, z)</span></code></pre></div>
+<p>Let’s view the result.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">print</span>(p)</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="co">#&gt; 10 + 5*x + 10*x^2 + 2*x^3</span></span></code></pre></div>
+<p>Let’s decode to obtain the original number:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>decoded_z <span class="ot">&lt;-</span> <span class="fu">decode</span>(xi, M, scale, p)</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="fu">print</span>(decoded_z)</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="co">#&gt; [1] 3.03033+3.737437i 1.96967-1.262563i</span></span></code></pre></div>
+<p>The decoded z is indeed very close to the original z, we round the
+result to make the clearer.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="fu">round</span>(decoded_z)</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="co">#&gt; [1] 3+4i 2-1i</span></span></code></pre></div>
+<p>Next, work through the CKKS-encode-2 vignette, which breaks down the
+encode and decode functions into the individual steps.</p>
 
 
 

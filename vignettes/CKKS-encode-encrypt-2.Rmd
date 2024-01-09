@@ -1,0 +1,130 @@
+---
+title: "CKKS encode encrypt 2"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{CKKS encode encrypt 2}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+Load libraries that will be used.
+```{r setup}
+library(polynom)
+library(HomomorphicEncryption)
+```
+
+Set a working seed for random numbers (so that random numbers can be replicated exactly).
+
+```{r seed}
+set.seed(123)
+```
+
+Set some parameters.
+
+```{r params}
+M     <-   8
+N     <-   M / 2
+scale <- 200
+xi    <- complex(real = cos(2 * pi / M), imaginary = sin(2 * pi / M))
+```
+
+Create the (complex) numbers we will encode.
+
+```{r z}
+z <- c(complex(real=3, imaginary=4), complex(real=2, imaginary=-1))
+print(z)
+```
+
+Now we encode the vector of complex numbers to a polynomial.
+
+```{r encode}
+pi_z                <- pi_inverse(z)
+scaled_pi_z         <- scale * pi_z
+rounded_scale_pi_zi <- sigma_R_discretization(xi, M, scaled_pi_z)
+m                   <- sigma_inverse(xi, M, rounded_scale_pi_zi)
+coef                <- as.vector(round(Re(m)))
+m                   <- polynomial(coef)
+```
+
+Let's view the result.
+
+```{r print-m}
+print(m)
+```
+
+Set some parameters:
+
+```{r params2}
+n  =  16
+p  =   7
+q  = 874
+pm = polynomial( coef=c(1, rep(0, n-1), 1 ) )
+```
+
+Create the secret key and the polynomials a and e, which will go into the public key:
+
+```{r seckey}
+# generate a secret key
+s = polynomial( sample.int(3, n, replace=TRUE)-2 )
+
+# generate a
+a = polynomial(sample.int(q, n, replace=TRUE))
+
+# generate the error
+e = polynomial( coef=round(stats::rnorm(n, 0, n/3)) )
+```
+
+Generate the public key:
+
+```{r pubkey}
+pk0 = CoefMod(-(a*s +e)%%pm,q)
+pk1 = a
+```
+
+Create polynomials for the encryption:
+
+```{r}
+# polynomials for encryption
+e1 = polynomial( coef=round(stats::rnorm(n, 0, n/3)) )
+e2 = polynomial( coef=round(stats::rnorm(n, 0, n/3)) )
+u  = polynomial( coef=sample.int(3, (n-1), replace=TRUE)-2 )
+```
+
+Generate the ciphertext (encryption):
+
+```{r}
+ct0 = CoefMod((pk0*u + e1 + m) %% pm, q)
+ct1 = CoefMod((pk1*u + e2    ) %% pm, q)
+```
+
+Decrypt:
+
+```{r}
+decrypt <- (ct1 * s) + ct0
+decrypt <- decrypt %% pm
+decrypt <- CoefMod(decrypt, q)
+print(decrypt[1:length(coef(m))])
+```
+
+Let's decode to obtain the original numbers:
+
+```{r decode}
+rescaled_p <- decrypt[1:length(m)] / scale
+z          <- sigma_function(xi, M, rescaled_p)
+decoded_z  <- pi_function(M, z)
+
+print(decoded_z)
+```
+
+The decoded z is indeed very close to the original z, we round the result to make the clearer.
+
+```{r round}
+round(decoded_z)
+```

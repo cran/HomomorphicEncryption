@@ -17,6 +17,8 @@ e = GenError(n)
 
 GenPubKey(a,n,e,pm,q)
 
+GenEvalKey0(a,s,e)
+
 pk0 = GenPubKey0(a, s, e, pm, q)
 pk1 = GenPubKey1(a)
 
@@ -36,7 +38,7 @@ decrypt = CoefMod(decrypt, q)
 # rescale
 decrypt = decrypt * p/q
 
-decrypt = CoefMod(round(decrypt), p)
+decrypt = HEtools::CoefMod(round(decrypt), p)
 
 test_that("multiplication works", {
   expect_equal(as.vector(decrypt)[1], 4)

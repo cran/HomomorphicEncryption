@@ -26,7 +26,6 @@ d  =   4
 n  =   2^d
 p  =   (n/2)-1
 q  = 874
-pm = GenPolyMod(n)
 ```
 
 Set a working seed for random numbers
@@ -34,22 +33,40 @@ Set a working seed for random numbers
 set.seed(123)
 ```
 
+Here we create the polynomial modulo.
+
+```{r GenPolyMod}
+pm = polynomial( coef=c(1, rep(0, n-1), 1 ) )
+print(pm)
+```
+
 Create the secret key and the polynomials a and e, which will go into the public key
 ```{r}
 # generate a secret key
 s = GenSecretKey(n)
+print(s)
+```
 
+```{r}
 # generate a
 a = GenA(n, q)
+print(a)
+```
 
-# generate the error
+Generate the error for the public key.
+```{r}
 e = GenError(n)
+print(e)
 ```
 
 Generate the public key.
 ```{r}
-# generate the public key
 pk0 = GenPubKey0(a, s, e, pm, q)
+print(pk0)
+```
+
+
+```{r}
 pk1 = GenPubKey1(a)
 ```
 
@@ -65,12 +82,18 @@ Create polynomials for the encryption
 e1 = GenError(n)
 e2 = GenError(n)
 u  = GenU(n)
+print(u)
 ```
 
-Generate the ciphertext
+Generate the ciphertext.
 ```{r}
 ct0 = EncryptPoly0(m, pk0, u, e1, p, pm, q)
+print(ct0)
+```
+
+```{r}
 ct1 = EncryptPoly1(   pk1, u, e2,    pm, q)
+print(ct1)
 ```
 
 Decrypt
@@ -89,3 +112,7 @@ Round (remove the error) then mod p
 decrypt = CoefMod(round(decrypt), p)
 print(decrypt)
 ```
+
+Which is indeed the message that we first encrypted.
+
+Next, look at the vignette BFV-2 which does the exact same process, but unpacks all the functions used here into basic mathematical operations.

@@ -27,7 +27,7 @@ remotes::install_github('bquast/HomomorphicEncryption', build_vignettes=TRUE)
 Following installation, the package can be loaded using:
 
 ```r
-library(rnn)
+library(HomomorphicEncryption)
 ```
 
 For general information on using the package, please refer to the help files.
@@ -36,7 +36,7 @@ For general information on using the package, please refer to the help files.
 help(package='HomomorphicEncryption')
 ```
 
-There is also a long form vignette available using:
+The procedures for the various Homomorphic Encrypted schema a described in the vignettes (BFV is the starting point):
 
 ```r
 vignette(package='HomomorphicEncryption')
@@ -47,7 +47,7 @@ vignette(package='HomomorphicEncryption')
 An overview of the changes is available in the [NEWS.md](/NEWS.md) file.
 
 ```r
-news(package='rnn')
+news(package='HomomorphicEncryption')
 ```
 
 ## Development

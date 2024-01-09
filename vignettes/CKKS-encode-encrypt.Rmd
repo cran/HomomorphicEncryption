@@ -1,8 +1,8 @@
 ---
-title: "CKKS"
+title: "CKKS encode encrypt"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{CKKS}
+  %\VignetteIndexEntry{CKKS encode encrypt}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -20,8 +20,40 @@ library(polynom)
 library(HomomorphicEncryption)
 ```
 
+Set a working seed for random numbers (so that random numbers can be replicated exactly).
+```{r seed}
+set.seed(123)
+```
+
 Set some parameters.
 ```{r params}
+M     <- 8
+N     <- M / 2
+scale <- 200
+xi    <- complex(real = cos(2 * pi / M), imaginary = sin(2 * pi / M))
+```
+
+Create the (complex) numbers we will encode.
+
+```{r z}
+z <- c(complex(real=3, imaginary=4), complex(real=2, imaginary=-1))
+print(z)
+```
+
+Now we encode the vector of complex numbers to a polynomial.
+
+```{r encode}
+m <- encode(xi, M, scale, z)
+```
+
+Let's view the result.
+
+```{r print-p}
+print(m)
+```
+
+Set some parameters.
+```{r params2}
 d  =   4
 n  =   2^d
 p  =   (n/2)-1
@@ -29,13 +61,8 @@ q  = 874
 pm = GenPolyMod(n)
 ```
 
-Set a working seed for random numbers
-```{r}
-set.seed(123)
-```
-
 Create the secret key and the polynomials a and e, which will go into the public key
-```{r}
+```{r seckey}
 # generate a secret key
 s = GenSecretKey(n)
 
@@ -47,15 +74,9 @@ e = GenError(n)
 ```
 
 Generate the public key.
-```{r}
+```{r pubkey}
 pk0 = GenPubKey0(a, s, e, pm, q)
 pk1 = GenPubKey1(a)
-```
-
-Create a polynomial message
-```{r}
-# create a message
-m = polynomial( coef=c(500, 600, 100) )
 ```
 
 Create polynomials for the encryption
@@ -77,5 +98,19 @@ Decrypt
 decrypt = (ct1 * s) + ct0
 decrypt = decrypt %% pm
 decrypt = CoefMod(decrypt, q)
-print(decrypt[1:length(coef(m))])
+print(decrypt[1:length(m)])
+```
+
+
+Let's decode to obtain the original number:
+
+```{r decode}
+decoded_z <- decode(xi, M, scale, polynomial(decrypt[1:length(m)]))
+print(decoded_z)
+```
+
+The decoded z is indeed very close to the original z, we round the result to make the clearer.
+
+```{r round}
+round(decoded_z)
 ```

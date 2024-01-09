@@ -29,12 +29,12 @@ a = GenA(n, q)
 e = GenError(n)
 
 ## -----------------------------------------------------------------------------
-pk0 = CoefMod((-a*s + e) %% pm, q)
+pk0 = GenPubKey0(a, s, e, pm, q)
 pk1 = GenPubKey1(a)
 
 ## -----------------------------------------------------------------------------
 # create a message
-m = polynomial( coef=c(25, 25, 25) )
+m = polynomial( coef=c(500, 600, 100) )
 
 ## -----------------------------------------------------------------------------
 # polynomials for encryption
@@ -43,12 +43,12 @@ e2 = GenError(n)
 u  = GenU(n)
 
 ## -----------------------------------------------------------------------------
-ct0 = CoefMod((pk0 * u + e1 + m) %% pm, q)
+ct0 = CoefMod((pk0*u + e1 + m) %% pm, q)
 ct1 = EncryptPoly1(pk1, u, e2, pm, q)
 
 ## -----------------------------------------------------------------------------
 decrypt = (ct1 * s) + ct0
 decrypt = decrypt %% pm
 decrypt = CoefMod(decrypt, q)
-print(decrypt)
+print(decrypt[1:length(coef(m))])
 
